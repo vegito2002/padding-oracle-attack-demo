@@ -61,10 +61,6 @@ func decrypt(args []string) ([]byte, error) {
   inputFile := args[1]
   data, err := ioutil.ReadFile(inputFile)
   check(err)
-  // if len(data) % 2 != 0 {
-  //   fmt.Println("Invalid ciphertext file")
-  //   os.Exit(1)
-  // }
   // read in and decode the hex formatted text file
   cipherTextWithIV := make([]byte, hex.DecodedLen(len(data)))
   _, err = hex.Decode(cipherTextWithIV, data)
