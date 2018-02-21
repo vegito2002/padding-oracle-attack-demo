@@ -1,5 +1,14 @@
 package main 
 
+/*
+  Utility script to convert human readable text to or from HEX format text
+  USAGE: $ go run convert-hex.go [flags]
+  flags: tohex: default to TRUE. TRUE means converting readable string to HEX, FALSE the other way around. Note that
+                you have to pass in this flag like -tohex=f with explicit `=` due to Go's requirement of boolean flag.
+         i    : input file name.
+         o    : output file name.
+*/
+
 import (
   "io/ioutil"
   "fmt"

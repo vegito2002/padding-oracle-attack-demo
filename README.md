@@ -76,7 +76,16 @@ This program is compiled into a binary for ease of interaction.
 
 The attacker itself is the program `decrypt-attack` which also takes only one argument of the `<ciphertext file>`:
 ```
+$ go run decrypt-attack.go -i ciphertext.txt -o restored-plaintext.txt
 $ go run decrypt-attack.go -i ciphertext.txt
+......................................................
+$ go run convert-hex.go -tohex=f -i restored-plaintext.txt -o restored-string.txt
+$ cat restored-string.txt
+The original Bitcoin software by Satoshi Nakamoto was released under the MIT license. Most client software, derived or "from scratch", also use open source licensing.
+
+Bitcoin is the first successful implementation of a distributed crypto-currency, described in part in 1998 by Wei Dai on the cypherpunks mailing list. Building upon the notion that money is any object, or any sort of record, accepted as payment for goods and services and repayment of debts in a given country or socio-economic context, Bitcoin is designed around the idea of using cryptography to control the creation and transfer of money, rather than relying on central authorities.
+
+Bitcoins have all the desirable properties of a money-like good. They are portable, durable, divisible, recognizable, fungible, scarce and difficult to counterfeit.
 ```
 Given only the ciphertext file, will take advantage of `decrypt-test` oracle, and find the actual corresponding plaintext.
 
@@ -89,5 +98,4 @@ To avoid clutter, all the text files mentioned above, except for `string.txt`(th
 The attacking may take several minutes to finish. There will be dots constantly being printed to the screen to show progress.
 
 TODO: implement a simple website that streamline all the functionalities of this project, including HEX converting, encryption, decrytion, and padding oracle attack.
-
 

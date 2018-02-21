@@ -13,14 +13,9 @@ import (
 )
 
 /*
-Note that by default, the program operates in hexadecimal mode. The direct 
+By default, the program operates in hexadecimal mode. The direct 
 implication is that `decrypt-test` program should also take in
-hexadecimal format input. If on the other hand, your `decrypt-test` only takes
-decimal (space-separated integers) format, do remember to supply the -dec 
-command line option to turn on decimal mode.
-To turn off hexadecimal mode, or to switch to decimal mode, supply an additional
-command line argument -dec as in:
-./decrypt-attack -dec -i ciphertextDec.txt
+hexadecimal format input. 
 
 Note that to ensure minimum possibility of bugs, please make sure your decimal
 formatted file contains just integers (to represent bytes) and separating spaces.
@@ -37,49 +32,11 @@ func check(e error) {
   }
 }
 
-// global flag to store whether hexadecimal or decimal mode in on
-var hexMode bool = true
-
 func main() {
-  // args := os.Args[1:]
-
-  // var inputFile string
-  // Dirty command line arguments parsing. `flag` package is avoided.
-  // switch len(args) {
-  //   case 2: {
-  //     if args[0] != "-i" {
-  //       fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-  //         <input ciphertext file>`)
-  //       os.Exit(1)
-  //     }
-  //     inputFile = args[1]
-  //   }
-  //   case 3: {
-  //     // turn on decimal mode operation
-  //     if args[0] != "-dec" || args[1] != "-i" {
-  //       fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-  //         <input ciphertext file>`)
-  //       os.Exit(1)
-  //     }
-  //     inputFile = args[2]
-  //     hexMode = false
-  //   }
-  //   default: {
-  //     fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-  //       <input ciphertext file>`)
-  //     os.Exit(1)
-  //   }
-  // }
-
-
-
   inputFileNameFlag := flag.String ("i", "ciphertext.txt", "input file name")
-  decModeFlag := flag.Bool ("dec", false, "off by default: expect input and produce output both in Decimal mode")
   outputFileNameFlag := flag.String ("o", "restored-plaintext.txt", "output file name")
 
   flag.Parse()
-
-  hexMode = *decModeFlag
 
   // read in file into a byte slice
   inputFile := *inputFileNameFlag
@@ -118,19 +75,10 @@ func main() {
   res := guessRes[:len(guessRes) - padLen - 32]
 
   outputFile := *outputFileNameFlag
-  var outputContent []byte
-  if hexMode {
-    outputContent = []byte(strings.Trim(strings.Join(strings.Fields(fmt.Sprintf("%x", res)), "") , "[]"))
-  } else {
-    outputContent = []byte(strings.Trim(fmt.Sprintf("%v", res), "[]"))
-  }
-  ioutil.WriteFile(outputFile, outputContent, 0644)
+  outputContent := make ([]byte, hex.EncodedLen (len (res)))
+  hex.Encode (outputContent, res)
 
-  // if hexMode {
-  //   fmt.Println(strings.Trim(strings.Join(strings.Fields(fmt.Sprintf("%x", res)), "") , "[]"))
-  // } else {
-  //   fmt.Println(strings.Trim(fmt.Sprintf("%v", res), "[]"))
-  // }
+  ioutil.WriteFile(outputFile, outputContent, 0644)
 }
 
 /*
@@ -158,7 +106,7 @@ func guess(IV, cipherText []byte) []byte {
     
     fmt.Printf (".")
   }
-  fmt.Println ("finish!")
+  fmt.Println ()
   // no need to return IV
   return res[16:]
 }
@@ -206,13 +154,9 @@ func guessLastBlock(query []byte) []byte {
       C_1[i] = byte(k)
     
       var outputToFile []byte
-      // hexadecimal or decimal mode handling
-      if hexMode {
-        outputToFile = make([]byte, hex.EncodedLen(len(query)))
-        hex.Encode(outputToFile, query)
-      } else {
-        outputToFile = []byte(strings.Trim(fmt.Sprint(query), "[]"))
-      }
+      // hexadecimal output
+      outputToFile = make([]byte, hex.EncodedLen(len(query)))
+      hex.Encode(outputToFile, query)
       ioutil.WriteFile("test.txt", outputToFile, 0644)      
       
       // delegate to `decrypt-test` program, and get its response message
