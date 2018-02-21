@@ -9,6 +9,7 @@ import (
   "os/exec"
   "strings"
   "strconv"
+  "flag"
 )
 
 /*
@@ -35,8 +36,6 @@ Certain trimming is done, but it is not comprehensive and failproof.
 
 Algorithm inspired by:
 https://robertheaton.com/2013/07/29/padding-oracle-attack/
-This is a version that is slightly different from Matthew's approach in class, 
-but works well and is easy to scale.
 */
 
 // routine for error handling
@@ -50,40 +49,53 @@ func check(e error) {
 var hexMode bool = true
 
 func main() {
-  args := os.Args[1:]
+  // args := os.Args[1:]
 
-  var inputFile string
-  // Dirty command line arguments parsing. `flag` package is avoided due to
-  // incompatibility with the handout profile specification.
-  switch len(args) {
-    case 2: {
-      if args[0] != "-i" {
-        fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-          <input ciphertext file>`)
-        os.Exit(1)
-      }
-      inputFile = args[1]
-    }
-    case 3: {
-      // turn on decimal mode operation
-      if args[0] != "-dec" || args[1] != "-i" {
-        fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-          <input ciphertext file>`)
-        os.Exit(1)
-      }
-      inputFile = args[2]
-      hexMode = false
-    }
-    default: {
-      fmt.Println(`usage: ./decrypt-attack [-dec] -i 
-        <input ciphertext file>`)
-      os.Exit(1)
-    }
-  }
+  // var inputFile string
+  // Dirty command line arguments parsing. `flag` package is avoided.
+  // switch len(args) {
+  //   case 2: {
+  //     if args[0] != "-i" {
+  //       fmt.Println(`usage: ./decrypt-attack [-dec] -i 
+  //         <input ciphertext file>`)
+  //       os.Exit(1)
+  //     }
+  //     inputFile = args[1]
+  //   }
+  //   case 3: {
+  //     // turn on decimal mode operation
+  //     if args[0] != "-dec" || args[1] != "-i" {
+  //       fmt.Println(`usage: ./decrypt-attack [-dec] -i 
+  //         <input ciphertext file>`)
+  //       os.Exit(1)
+  //     }
+  //     inputFile = args[2]
+  //     hexMode = false
+  //   }
+  //   default: {
+  //     fmt.Println(`usage: ./decrypt-attack [-dec] -i 
+  //       <input ciphertext file>`)
+  //     os.Exit(1)
+  //   }
+  // }
+
+
+
+  inputFileNameFlag := flag.String ("i", "ciphertext.txt", "input file name")
+  decModeFlag := flag.Bool ("dec", false, "off by default: expect input and produce output both in Decimal mode")
+  outputFileNameFlag := flag.String ("o", "restored-plaintext.txt", "output file name")
+
+  flag.Parse()
+
+  hexMode = *decModeFlag
 
   // read in file into a byte slice
+  inputFile := *inputFileNameFlag
   data, err := ioutil.ReadFile(inputFile)
-  check(err)
+  if err != nil {
+    fmt.Printf ("input file %s does not exit!\n", inputFile)
+    os.Exit(1)
+  }
 
   // try to decode the file content as hex format first
   cipherTextWithIV := make([]byte, hex.DecodedLen(len(data)))
@@ -113,11 +125,20 @@ func main() {
   padLen := int(guessRes[len(guessRes) - 1])
   res := guessRes[:len(guessRes) - padLen - 32]
 
+  outputFile := *outputFileNameFlag
+  var outputContent []byte
   if hexMode {
-    fmt.Println(strings.Trim(strings.Join(strings.Fields(fmt.Sprintf("%x", res)), "") , "[]"))
+    outputContent = []byte(strings.Trim(strings.Join(strings.Fields(fmt.Sprintf("%x", res)), "") , "[]"))
   } else {
-    fmt.Println(strings.Trim(fmt.Sprintf("%v", res), "[]"))
+    outputContent = []byte(strings.Trim(fmt.Sprintf("%v", res), "[]"))
   }
+  ioutil.WriteFile(outputFile, outputContent, 0644)
+
+  // if hexMode {
+  //   fmt.Println(strings.Trim(strings.Join(strings.Fields(fmt.Sprintf("%x", res)), "") , "[]"))
+  // } else {
+  //   fmt.Println(strings.Trim(fmt.Sprintf("%v", res), "[]"))
+  // }
 }
 
 /*
@@ -143,9 +164,9 @@ func guess(IV, cipherText []byte) []byte {
     // copy guessed last block into result buffer
     copy(res[i * 16 : i * 16 + 16], lastBlock)
     
-    // uncomment this if you want verbose result during attacking
-    // ppPrint("finishing res: ", res)///
+    fmt.Printf (".")
   }
+  fmt.Println ("finish!")
   // no need to return IV
   return res[16:]
 }
@@ -164,7 +185,7 @@ func guessLastBlock(query []byte) []byte {
   https://robertheaton.com/2013/07/29/padding-oracle-attack/
   I2 is the intermediate state.
   The move here is to use a fake C1, which is named C_1 here, to try for each
-  byte of I2, in a way that is similar to Matthew's approach in class.
+  byte of I2.
   Once we have I2 by iterative trying, we can just get P2 = I2 xor C1, which
   is buffered at beginning.
   */
