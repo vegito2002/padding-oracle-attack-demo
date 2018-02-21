@@ -13,16 +13,8 @@ import (
 )
 
 /*
-IMPORTANT: READ FIRST
-Neither the handout of hw2part1 or hw2part2 gives a hard bound specification 
-about the format of ciphertext file, despite specifying the key string and the 
-plaintext file to be octet/hexadecimal format. I took the liberty to implement
-both my program to be able to handle hexadecimal and decimal format input files.
-* hexadecimal: conventional octet string representation
-* decimal: space-separated integers
-
 Note that by default, the program operates in hexadecimal mode. The direct 
-implication is that your supplied `decrypt-test` program should also take in
+implication is that `decrypt-test` program should also take in
 hexadecimal format input. If on the other hand, your `decrypt-test` only takes
 decimal (space-separated integers) format, do remember to supply the -dec 
 command line option to turn on decimal mode.
