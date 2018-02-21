@@ -2,12 +2,12 @@
 
 ## Background
 
-[Padding Oracle Attack](https://en.wikipedia.org/wiki/Padding_oracle_attack) is a classic cryptographic attack that shows seemingly complicated security scheme can fall apart really easy. The attack has been carried our in reality and has further variants.
+[Padding Oracle Attack](https://en.wikipedia.org/wiki/Padding_oracle_attack) is a classic cryptographic attack that shows seemingly complicated security scheme can fall apart really easy. The attack has been carried out in reality and has further variants.
 
-In this project, I implement from scratch a demonstration of how such an attack is carried out. 
+In this project, I implement from scratch a demonstration of how such an attack is carried out. The highest level of imported library implementation of cryptograph relevant component is AES. All other components including CBC, HMAC etc. are all implemented manually.
 
 The least information you have two know is, an oracle can encrypt your `plaintext` into `ciphertext` with a `key`, or decrypt your `ciphertext` with the same `key` back to the original `plaintext`. A Padding Oracle attacker, with only knowledge of the `ciphertext`, and no knowledge of the `key` used in the encryption, can take advantage of the error message a decrypting oracle outputs to programmatically find out the original `plaintext`. The model of the crypto scheme being attacked is specified as follows (the oracle behaves in such a way):
-* The oracle encrypts with classic *tag then encrypt* mode, where we:
+* The oracle encrypts with classic **tag then encrypt** mode, where we:
     1. Calculate a MAC tag `T` according to HMAC-SHA256 of `M` and the provided MAC key `Mac_key`, append to the original plaintext `M` to get `M' = M || T` (`||` being concatenation).
     2. Calculate padding string `PS` according to [PKCS #5](https://tools.ietf.org/html/rfc2898) scheme. Concatenate again and get `M'' = M' || PS`.
     3. Select a random 16-byte `IV` and encrypt `M''` according to AES-128 in CBC mode: `C' = AES-CBC-ENC (Enc_key, IV, M'')`.
@@ -18,13 +18,13 @@ The least information you have two know is, an oracle can encrypt your `plaintex
     3. Parse `M'` as `M || T` because `T` as an HMAC-SHA256 tag is known to be 32-byte long.
     4. Calculate `T'` with `Mac_key` and `M`, then compare with `T`. If different, output error message **"INVALID MAC"** and abort. Otherwise, output the decrypted message `M`. This success can also be views as the oracle outputing error message **"SUCCESS"**.
 
-This cryptographic specification seems solid. It provides both *confidentiality*, *integrity* and *authentication*. But the famous *Padding Oracle Attack* can break such a cryptographic oracle simply by knowing the error message output. The basic idea of the attack is introduced [here](https://robertheaton.com/2013/07/29/padding-oracle-attack/).
+This cryptographic specification seems solid. It provides both *confidentiality*, *integrity* and *authentication*. But the famous *Padding Oracle Attack* can break such a cryptographic oracle simply by knowing the error message output for each ciphertext query the attacker submits. The basic idea of the attack is introduced [here](https://robertheaton.com/2013/07/29/padding-oracle-attack/).
 
 ## Running the Demo
 This project consists of two parts. 
 
 ### Building the Oracle
-In the first part, the program `encrypt-auth` implements the encryption and decryption specification as introduced above. 
+In the first part, the program `encrypt-auth` implements the encryption and decryption specification as introduced above. In classic cryptographic vocabulary, we can call such an entity that does encryption or decryption once queried an oracle. 
 
 For generality, both `encrypt-auth` and `decrypt-attack` deals with HEX formatted data primarily. To get the HEX format of a human readable string, as you might want to do to play with the demo, I provide another utility `convert-hex` that can help you convert to or back from HEX format of a string. Store your string in a text file:
 ```
@@ -62,8 +62,8 @@ $ diff string-restored.txt string.txt
 ```
 You can open the file and see the original thing.
 
-### Building The Attacker
-The attacker has the ciphertext stored in `ciphertext.txt`, but no knowledge of the key used. It also has the ability to query the oracle above with any ciphertext, making the oracle trying to decrypt it. But the oracle will only tell the attacker the error information. This is much more useful than you think.
+### Building the Attacker
+The attacker knows about the ciphertext from the file `ciphertext.txt`, but knows nothing about the key used. It also has the ability to query the oracle as built above with any ciphertext, making the oracle trying to decrypt it. The oracle will *only* tell the attacker the error information, and nothing about the decrypted information itself, whether write or wrong. Even this limited knowledge of error response can be shown to be much more powerful than anticipated. The attacker can restore the plaintext of the aforementioned intercepted ciphertext simply with this limitted ability, and it never has to find out the key used.
 
 To simulate an oracle that will only return error information, I modified `encrypt-auth` into `decrypt-test`, which has a hard-coded key that we consider the oracle remembers. Such an oracle receives any ciphertext and tries to decrypt it with its stored key, and will only output the error response. The protocol:
 ```
@@ -71,7 +71,7 @@ $ go run decrypt-test.go -i <ciphertext file>
 ```
 This program is compiled into a binary for ease of interaction.
 
-The attacker itself is the program `decrypt-attack` which:
+The attacker itself is the program `decrypt-attack` which also takes only one argument of the `<ciphertext file>`:
 ```
 $ go run decrypt-attack.go -i ciphertext.txt
 ```
