@@ -2,7 +2,10 @@
 
 ## Background
 
-[Padding Oracle Attack](https://en.wikipedia.org/wiki/Padding_oracle_attack) is a classic cryptographic attack that shows seemingly complicated security scheme can fall apart really easy. The attack has been carried out in reality and has further variants.
+[Padding Oracle Attack](https://en.wikipedia.org/wiki/Padding_oracle_attack) is a classic cryptographic attack that shows seemingly complicated security scheme can fall apart really easy. The attack has been carried out in reality (found in TLS and OpenSSL) and and has further variants.
+
+From [Wiki](https://en.wikipedia.org/wiki/Padding_oracle_attack)
+> The original attack was published in 2002 by Serge Vaudenay.The attack was applied to several web frameworks, including JavaServer Faces, Ruby on Rails and ASP.NET as well as other software, such as Steam gaming client. In 2012 it was shown to be effective against some hardened security devices.
 
 In this project, I implement from scratch a demonstration of how such an attack is carried out. The highest level of imported library implementation of cryptograph relevant component is AES. All other components including CBC, HMAC etc. are all implemented manually.
 
