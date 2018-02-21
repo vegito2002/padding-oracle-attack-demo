@@ -93,7 +93,7 @@ Given only the ciphertext file, will take advantage of `decrypt-test` oracle, an
 
 The codes are all well-commented. If you are curious about the detailed mechanism of this attack, dig in.
 
-To avoid clutter, all the text files mentioned above, except for `string.txt`(the original human-readable string text) and `test.txt`(the temporary text file used by the `decrypt-attack` program), are all moved into the `texts` folder.
+To avoid clutter, all the `txt` files are ignored by git. 
 
 The attacking may take several minutes to finish. There will be dots constantly being printed to the screen to show progress.
 
